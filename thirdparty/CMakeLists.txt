@@ -68,3 +68,5 @@ target_link_libraries(thirdparty
         Boost::thread
         z
 )
+
+add_library(jdb::thirdparty ALIAS thirdparty)
