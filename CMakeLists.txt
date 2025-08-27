@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project(jdb
   LANGUAGES CXX
-  VERSION 1.0
+  VERSION 1.0.0
 )
 
 set(CMAKE_CXX_STANDARD 23)
@@ -14,8 +14,6 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
   Debug
 )
 
-add_subdirectory(thirdparty)
-
 add_library(${PROJECT_NAME}_core
         INTERFACE
 )
@@ -26,9 +24,10 @@ target_link_libraries(${PROJECT_NAME}_core
 
 target_include_directories(${PROJECT_NAME}_core
         INTERFACE
-            include
+            ${PROJECT_SOURCE_DIR}/include
 )
 
 add_library(jdb::core ALIAS ${PROJECT_NAME}_core)
 
+add_subdirectory(thirdparty)
 add_subdirectory(tests)

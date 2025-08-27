@@ -51,9 +51,9 @@ if (expected_POPULATED)
 endif ()
 
 # create a target to use in src/
-add_library(jdb_thirdparty INTERFACE)
+add_library(${PROJECT_NAME}_thirdparty INTERFACE)
 
-target_link_libraries(jdb_thirdparty
+target_link_libraries(${PROJECT_NAME}_thirdparty
     INTERFACE
         jmixin
         jinject
@@ -69,4 +69,4 @@ target_link_libraries(jdb_thirdparty
         z
 )
 
-add_library(jdb::thirdparty ALIAS jdb_thirdparty)
+add_library(jdb::thirdparty ALIAS ${PROJECT_NAME}_thirdparty)
