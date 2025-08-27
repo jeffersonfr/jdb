@@ -1,0 +1,7 @@
+# debian 12
+
+	apt install g++ git cmake make patch libboost-filesystem-dev libboost-iostreams-dev libboost-system-dev libboost-thread-dev libboost-timer-dev libboost-date-time-dev libssl-dev  libasio-dev libz-dev
+
+# alpine 3.22
+
+	apk add g++ git cmake make patch boost-dev libssl3 openssl-dev asio-dev
