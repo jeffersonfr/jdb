@@ -1,6 +1,6 @@
-#include "database/SqliteDatabase.hpp"
-#include "database/DataClass.hpp"
-#include "database/Repository.hpp"
+#include "jdb/database/SqliteDatabase.hpp"
+#include "jdb/database/DataClass.hpp"
+#include "jdb/database/Repository.hpp"
 
 #include <fmt/format.h>
 #include <gtest/gtest.h>

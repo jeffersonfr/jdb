@@ -1,6 +1,0 @@
-#pragma once
-
-#define JDB_GIT_COMMIT_HASH "@COMMIT_HASH@"
-#define JDB_GIT_SHORT_COMMIT_HASH "@SHORT_COMMIT_HASH@"
-#define JDB_GIT_BRANCH "@GIT_BRANCH@"
-#define JDB_GIT_TAG "@GIT_TAG@"

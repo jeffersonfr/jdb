@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utils/StringLiteral.hpp"
+#include "jdb/utils/StringLiteral.hpp"
 
 #include <chrono>
 #include <functional>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "database/DataClass.hpp"
+#include "jdb/database/DataClass.hpp"
 
 template<typename... Models>
 struct CompoundModel : public Models... {

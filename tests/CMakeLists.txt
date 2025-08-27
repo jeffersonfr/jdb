@@ -18,13 +18,12 @@ macro(module_test)
     add_test(${id} ${id} COMMAND $<TARGET_FILE:${id}>)
     target_link_libraries(${id}
             PRIVATE
-                info
-                thirdparty
+                jdb
                 gtest_main
     )
     target_include_directories(${id}
             PRIVATE
-                ${PROJECT_SOURCE_DIR}/src
+            ${PROJECT_SOURCE_DIR}/include
     )
     target_include_directories(${PROJECT_NAME}
             INTERFACE

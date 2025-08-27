@@ -14,7 +14,20 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
   Debug
 )
 
-add_subdirectory(info)
 add_subdirectory(thirdparty)
-add_subdirectory(src)
+
+add_library(${PROJECT_NAME}
+        INTERFACE
+)
+
+target_link_libraries(${PROJECT_NAME}
+        INTERFACE
+            thirdparty
+)
+
+target_include_directories(${PROJECT_NAME}
+        INTERFACE
+            include
+)
+
 add_subdirectory(tests)

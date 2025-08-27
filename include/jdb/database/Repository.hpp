@@ -1,10 +1,8 @@
 #pragma once
 
-#include "database/Database.hpp"
-#include "database/CompoundModel.hpp"
+#include "jdb/database/Database.hpp"
+#include "jdb/database/CompoundModel.hpp"
 
-#include <fstream>
-#include <iostream>
 #include <optional>
 #include <sstream>
 #include <string>

@@ -1,11 +1,10 @@
 #pragma once
 
-#include "database/Database.hpp"
-#include "database/Migration.hpp"
+#include "jdb/database/Database.hpp"
+#include "jdb/database/Migration.hpp"
 
 #include <algorithm>
 #include <functional>
-#include <optional>
 #include <sstream>
 #include <string>
 #include <vector>

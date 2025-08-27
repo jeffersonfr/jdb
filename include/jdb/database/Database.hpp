@@ -1,7 +1,7 @@
 #pragma once
 
-#include "database/DataClass.hpp"
-#include "database/Migration.hpp"
+#include "jdb/database/DataClass.hpp"
+#include "jdb/database/Migration.hpp"
 
 #include <chrono>
 #include <functional>
