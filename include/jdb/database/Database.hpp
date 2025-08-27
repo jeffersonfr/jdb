@@ -25,7 +25,7 @@ namespace jdb {
 
     virtual int64_t get_last_rowid() = 0;
 
-    template<typename Model, StringLiteral... Fields>
+    template<typename Model, jmixin::StringLiteral... Fields>
     std::optional<Model> find_by_rowid(int64_t rowId) {
       std::optional<Model> item;
       std::ostringstream o;
@@ -310,7 +310,7 @@ namespace jdb {
     }
   };
 
-  template<typename Model, StringLiteral... Fields>
+  template<typename Model, jmixin::StringLiteral... Fields>
   struct InsertValue {
     explicit InsertValue(Database &db) : mDb{db} {
     }
@@ -338,12 +338,12 @@ namespace jdb {
     std::vector<std::function<void()> > mInsertions;
   };
 
-  template<typename Model, StringLiteral... Fields>
+  template<typename Model, jmixin::StringLiteral... Fields>
   auto insert(Database &db) {
     return InsertValue<Model, Fields...>{db};
   }
 
-  template<typename Model, StringLiteral... Fields>
+  template<typename Model, jmixin::StringLiteral... Fields>
   struct UpdateValue {
     explicit UpdateValue(Database &db) : mDb{db} {
     }
@@ -371,12 +371,12 @@ namespace jdb {
     std::vector<std::function<void()> > mUpdates;
   };
 
-  template<typename Model, StringLiteral... Fields>
+  template<typename Model, jmixin::StringLiteral... Fields>
   auto update(Database &db) {
     return UpdateValue<Model, Fields...>{db};
   }
 
-  template<typename Model, StringLiteral... Fields>
+  template<typename Model, jmixin::StringLiteral... Fields>
   struct RemoveValue {
     explicit RemoveValue(Database &db) : mDb{db} {
     }
@@ -404,7 +404,7 @@ namespace jdb {
     std::vector<std::function<void()> > mUpdates;
   };
 
-  template<typename Model, StringLiteral... Fields>
+  template<typename Model, jmixin::StringLiteral... Fields>
   auto remove(Database &db) {
     return RemoveValue<Model, Fields...>{db};
   }

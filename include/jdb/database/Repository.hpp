@@ -22,7 +22,7 @@ namespace jdb {
 
     std::shared_ptr<Database> get_database() { return mDb; }
 
-    template<StringLiteral Extras, std::size_t Limit = 100>
+    template<jmixin::StringLiteral Extras, std::size_t Limit = 100>
     std::vector<Model> select(auto... values) const {
       std::vector<Model> items;
       std::ostringstream o;
@@ -54,7 +54,7 @@ namespace jdb {
 
     std::vector<Model> load_all() const { return select<"ORDER BY ROWID">(); }
 
-    template<StringLiteral... Fields>
+    template<jmixin::StringLiteral... Fields>
     int64_t count_by(auto... values) const {
       std::ostringstream o;
       int64_t result = 0L;
@@ -73,7 +73,7 @@ namespace jdb {
       return result;
     }
 
-    template<StringLiteral... Fields>
+    template<jmixin::StringLiteral... Fields>
     std::vector<Model> load_by(auto... values) const {
       std::vector<Model> items;
       std::ostringstream o;
@@ -102,7 +102,7 @@ namespace jdb {
       return items;
     }
 
-    template<StringLiteral... Fields>
+    template<jmixin::StringLiteral... Fields>
     std::optional<Model> first_by(auto... values) const {
       std::vector<Model> items;
       std::ostringstream o;
@@ -143,7 +143,7 @@ namespace jdb {
       return {items[0]};
     }
 
-    template<StringLiteral... Fields>
+    template<jmixin::StringLiteral... Fields>
     std::optional<Model> last_by(auto... values) const {
       std::vector<Model> items;
       std::ostringstream o;
@@ -248,7 +248,7 @@ namespace jdb {
       return {};
     }
 
-    template<StringLiteral... Fields>
+    template<jmixin::StringLiteral... Fields>
     void remove_by(Data values...) const {
       auto items = load_by<Fields...>(values);
 
@@ -260,12 +260,12 @@ namespace jdb {
   private:
     std::shared_ptr<Database> mDb;
 
-    template<StringLiteral... Keys>
+    template<jmixin::StringLiteral... Keys>
     auto find_expanded(Primary<Keys...> primaryKeys, auto... values) {
       return load_by<Keys...>(values...);
     }
 
-    template<std::size_t Index, StringLiteral Field, StringLiteral... Fields>
+    template<std::size_t Index, jmixin::StringLiteral Field, jmixin::StringLiteral... Fields>
     void for_each_where(std::ostream &out, Data value, auto... values) const {
       if (Index != 0) {
         out << " AND ";
@@ -293,7 +293,7 @@ namespace jdb {
       }
     }
 
-    template<std::size_t Index, StringLiteral Field, StringLiteral... Fields>
+    template<std::size_t Index, jmixin::StringLiteral Field, jmixin::StringLiteral... Fields>
     void for_each_order(std::ostream &out) const {
       if (Index != 0) {
         out << ", ";
@@ -464,6 +464,8 @@ namespace jinject {
   template<typename T>
   struct introspection<jdb::Repository<T> > {
     static std::string to_string() {
+      using namespace jdb;
+
       return fmt::format("Repository<{}>", introspection<T>::to_string());
     }
   };

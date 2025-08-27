@@ -1,6 +1,7 @@
 #pragma once
 
-#include "jdb/utils/StringLiteral.hpp"
+#include "jinject/jinject.h"
+#include "jmixin/jstringliteral.h"
 
 #include <chrono>
 #include <functional>
@@ -9,8 +10,6 @@
 #include <optional>
 #include <string>
 #include <variant>
-
-#include <jinject/jinject.h>
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
@@ -33,12 +32,12 @@ namespace jdb {
     static std::optional<std::string> get_value() { return {}; }
   };
 
-  template<StringLiteral Value>
+  template<jmixin::StringLiteral Value>
   struct DefaultValue {
     static std::optional<std::string> get_value() { return {Value.to_string()}; }
   };
 
-  template<StringLiteral Value>
+  template<jmixin::StringLiteral Value>
   using TextValue = DefaultValue<fmt::format("'{}'", Value.to_string())>;
 
   using TimestampValue = DefaultValue<"(datetime('now', 'localtime'))">;
@@ -51,7 +50,7 @@ namespace jdb {
     { T::is_nullable() } -> std::same_as<bool>;
   };
 
-  template<StringLiteral Name, FieldType Type, bool Nullable = true,
+  template<jmixin::StringLiteral Name, FieldType Type, bool Nullable = true,
     DefaultValueConcept Default = NoDefaultValue>
   struct Field {
     constexpr static std::string get_name() { return Name.to_string(); }
@@ -65,23 +64,23 @@ namespace jdb {
     }
   };
 
-  template<StringLiteral Name, FieldType Type, bool Nullable = true>
+  template<jmixin::StringLiteral Name, FieldType Type, bool Nullable = true>
   std::ostream &operator<<(std::ostream &out, Field<Name, Type, Nullable> field) {
     out << get_name(field) << " " << get_type(field) << " " << is_nullable(field);
 
     return out;
   }
 
-  template<StringLiteral Name, bool Nullable = true>
+  template<jmixin::StringLiteral Name, bool Nullable = true>
   using BoolField = Field<Name, FieldType::Bool, Nullable>;
 
-  template<StringLiteral Name, bool Nullable = true>
+  template<jmixin::StringLiteral Name, bool Nullable = true>
   using IntField = Field<Name, FieldType::Int, Nullable>;
 
-  template<StringLiteral Name, bool Nullable = true>
+  template<jmixin::StringLiteral Name, bool Nullable = true>
   using DecimalField = Field<Name, FieldType::Decimal, Nullable>;
 
-  template<StringLiteral Name, bool Nullable = true>
+  template<jmixin::StringLiteral Name, bool Nullable = true>
   using TextField = Field<Name, FieldType::Text, Nullable>;
 
   template<typename T>
@@ -94,7 +93,7 @@ namespace jdb {
     };
   };
 
-  template<StringLiteral... Keys>
+  template<jmixin::StringLiteral... Keys>
   struct Primary {
     constexpr Primary() {
       std::array<std::string_view, sizeof...(Keys)> primaryKeys;
@@ -118,7 +117,7 @@ namespace jdb {
     }
 
   private:
-    template<typename F, StringLiteral Arg, StringLiteral... Args>
+    template<typename F, jmixin::StringLiteral Arg, jmixin::StringLiteral... Args>
     static constexpr void for_each(F callback) {
       callback.template operator()<Arg>();
 
@@ -144,7 +143,7 @@ namespace jdb {
     { T::get_name() } -> std::same_as<std::string>;
   };
 
-  template<typename T, StringLiteral Field>
+  template<typename T, jmixin::StringLiteral Field>
   struct Refer {
     using Model = T;
 
@@ -296,7 +295,7 @@ namespace jdb {
     return o.str();
   }
 
-  template<StringLiteral Name, PrimaryConcept PrimaryKeys,
+  template<jmixin::StringLiteral Name, PrimaryConcept PrimaryKeys,
     ForeignConcept ForeignKeys, FieldConcept... Fields>
   struct DataClass {
     using Keys = PrimaryKeys;
@@ -325,7 +324,7 @@ namespace jdb {
 
     template<typename F>
     static constexpr void get_keys(F callback) {
-      PrimaryKeys::template get_keys([&]<StringLiteral Key>() {
+      PrimaryKeys::template get_keys([&]<jmixin::StringLiteral Key>() {
         int index = index_of<0, Fields...>(Key.to_string());
 
         if (index < 0) {
@@ -438,21 +437,21 @@ namespace jdb {
   };
 }
 
-template<jdb::StringLiteral Name, jdb::PrimaryConcept PrimaryKeys,
+template<jmixin::StringLiteral Name, jdb::PrimaryConcept PrimaryKeys,
   jdb::ForeignConcept ForeignKeys, jdb::FieldConcept... Fields>
 struct fmt::formatter<jdb::DataClass<Name, PrimaryKeys, ForeignKeys, Fields...> >
   : fmt::ostream_formatter {
 };
 
 namespace jinject {
-  template<jdb::StringLiteral Name, jdb::PrimaryConcept PrimaryKeys,
+  template<jmixin::StringLiteral Name, jdb::PrimaryConcept PrimaryKeys,
     jdb::ForeignConcept ForeignKeys, jdb::FieldConcept... Fields>
   struct introspection<jdb::DataClass<Name, PrimaryKeys, ForeignKeys, Fields...> > {
     static std::string to_string() {
       std::string primaryKeys, foreignKeys, fields;
       bool first = true;
 
-      PrimaryKeys::template get_keys([&]<StringLiteral Key>() {
+      PrimaryKeys::template get_keys([&]<jmixin::StringLiteral Key>() {
         get_fields([&]<typename Field>() {
           if (!first) {
             primaryKeys += ", ";

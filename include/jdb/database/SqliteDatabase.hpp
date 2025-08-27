@@ -218,7 +218,7 @@ namespace jdb {
     static constexpr void for_each(F callback) {
     }
 
-    template<StringLiteral Name, typename PrimaryKeys, typename ForeignKeys,
+    template<jmixin::StringLiteral Name, typename PrimaryKeys, typename ForeignKeys,
       typename... Fields>
     static constexpr std::string
       create_ddl(DataClass<Name, PrimaryKeys, ForeignKeys, Fields...> &&model) {
@@ -329,7 +329,7 @@ namespace jdb {
       return ddl.str();
     }
 
-    template<StringLiteral Name, typename PrimaryKeys, typename ForeignKeys,
+    template<jmixin::StringLiteral Name, typename PrimaryKeys, typename ForeignKeys,
       typename... Fields>
     static constexpr std::string
       drop_ddl(DataClass<Name, PrimaryKeys, Fields...> const &dataClass) {
