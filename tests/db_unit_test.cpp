@@ -8,6 +8,7 @@
 #include <iostream>
 
 using namespace jinject;
+using namespace jdb;
 
 using DumpModel = DataClass<"dump_model", Primary<"id">, NoForeign,
   Field<"id", FieldType::Serial, false>,
