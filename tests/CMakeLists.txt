@@ -18,8 +18,8 @@ macro(module_test)
     add_test(${id} ${id} COMMAND $<TARGET_FILE:${id}>)
     target_link_libraries(${id}
             PRIVATE
-                jdb1::core
-                jdb3::thirdparty
+                jdb::core
+                jdb::thirdparty
                 gtest_main
     )
     target_include_directories(${id}

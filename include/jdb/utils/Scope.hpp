@@ -5,8 +5,8 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/strand.hpp>
 #include <boost/thread/thread.hpp>
+
 #include <iostream>
-#include <asio/executor_work_guard.hpp>
 
 struct Scope {
   Scope(std::size_t threads = 1)
