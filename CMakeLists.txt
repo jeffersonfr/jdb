@@ -16,19 +16,19 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
 
 add_subdirectory(thirdparty)
 
-add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME}_core
         INTERFACE
 )
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME}_core
         INTERFACE
 )
 
-target_include_directories(${PROJECT_NAME}
+target_include_directories(${PROJECT_NAME}_core
         INTERFACE
             include
 )
 
-add_library(jdb::core ALIAS jdb)
+add_library(jdb::core ALIAS ${PROJECT_NAME}_core)
 
 add_subdirectory(tests)

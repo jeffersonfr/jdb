@@ -24,9 +24,9 @@ macro(module_test)
     )
     target_include_directories(${id}
             PRIVATE
-            ${PROJECT_SOURCE_DIR}/include
+                ${PROJECT_SOURCE_DIR}/include
     )
-    target_include_directories(${PROJECT_NAME}
+    target_include_directories(${id}
             INTERFACE
                 .
                 ${CMAKE_BINARY_DIR}
