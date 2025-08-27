@@ -22,12 +22,13 @@ add_library(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
         INTERFACE
-            jdb::thirdparty
 )
 
 target_include_directories(${PROJECT_NAME}
         INTERFACE
             include
 )
+
+add_library(jdb::core ALIAS jdb)
 
 add_subdirectory(tests)
