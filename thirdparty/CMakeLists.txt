@@ -69,4 +69,4 @@ target_link_libraries(${PROJECT_NAME}_thirdparty
         z
 )
 
-add_library(jdb::thirdparty ALIAS ${PROJECT_NAME}_thirdparty)
+add_library(jdb3::thirdparty ALIAS ${PROJECT_NAME}_thirdparty)

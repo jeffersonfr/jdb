@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(jdb
+project(jdb2
   LANGUAGES CXX
   VERSION 1.0.0
 )
@@ -27,7 +27,7 @@ target_include_directories(${PROJECT_NAME}_core
             ${PROJECT_SOURCE_DIR}/include
 )
 
-add_library(jdb::core ALIAS ${PROJECT_NAME}_core)
+add_library(jdb1::core ALIAS ${PROJECT_NAME}_core)
 
 add_subdirectory(thirdparty)
 add_subdirectory(tests)
