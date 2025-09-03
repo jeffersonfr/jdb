@@ -1,6 +1,7 @@
 #include "jdb/database/SqliteDatabase.hpp"
 #include "jdb/database/DataClass.hpp"
 #include "jdb/database/Repository.hpp"
+#include "jdb/database/ExtendedModel.hpp"
 
 #include <fmt/format.h>
 #include <gtest/gtest.h>
@@ -17,6 +18,10 @@ using DumpModel = DataClass<"dump_model", Primary<"id">, NoForeign,
   Field<"descricao", FieldType::Text, false>>;
 
 using DumpModelRepository = Repository<DumpModel>;
+
+using ExtendedDumpModel = ExtendedModel<DumpModel,
+  Field<"outro_campo", FieldType::Text, false>
+>;
 
 struct Environment : public ::testing::Environment {
   Environment() = default;
