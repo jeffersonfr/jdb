@@ -452,15 +452,13 @@ namespace jinject {
       bool first = true;
 
       PrimaryKeys::template get_keys([&]<jmixin::StringLiteral Key>() {
-        get_fields([&]<typename Field>() {
-          if (!first) {
-            primaryKeys += ", ";
-          }
+        if (!first) {
+          primaryKeys += ", ";
+        }
 
-          first = false;
+        first = false;
 
-          primaryKeys += Field::get_name();
-        });
+        primaryKeys += Key.to_string();
       });
 
       first = true;
