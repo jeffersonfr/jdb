@@ -11,16 +11,23 @@
 using namespace jinject;
 using namespace jdb;
 
-using DumpModel = DataClass<"dump_model", Primary<"id">, NoForeign,
+using UserModel = DataClass<"user", Primary<"id">, NoForeign,
   Field<"id", FieldType::Serial, false>,
-  Field<"imei", FieldType::Int, false>,
-  Field<"efetivo", FieldType::Int, false>,
-  Field<"descricao", FieldType::Text, false>>;
+  Field<"name", FieldType::Int, false>,
+  Field<"address", FieldType::Int, false>,
+  Field<"description", FieldType::Text, false>>;
 
-using DumpModelRepository = Repository<DumpModel>;
+using LoginModel = DataClass<"login", Primary<"id">, NoForeign,
+  Field<"user_id", FieldType::Serial, false>,
+  ConstrainedField<1, "pass", FieldType::Int, false>>;
 
-using ExtendedDumpModel = ExtendedModel<DumpModel,
-  Field<"outro_campo", FieldType::Text, false>
+using CompoundUser = CompoundModel<UserModel, LoginModel>;
+
+using UserModelRepository = Repository<UserModel>;
+using LoginModelRepository = Repository<LoginModel>;
+
+using ExtendedUserModel = ExtendedModel<UserModel,
+  Field<"new_field", FieldType::Text, false>
 >;
 
 struct Environment : public ::testing::Environment {
@@ -43,17 +50,62 @@ struct jDbSuite : public ::testing::Test {
   }
 };
 
+namespace jdb {
+  void model_from_data(UserModel &model, std::string const &data) {
+    model["description"] = data;
+  }
+
+  void model_to_data(UserModel const &model, std::string &data) {
+    data = model["description"].get_text().value();
+  }
+}
+
 TEST_F(jDbSuite, SimpleMigration) {
-  	using MyDatabase = SqliteDatabase<DumpModel>;
+  using MyDatabase = SqliteDatabase<UserModel>;
 
-	auto db = std::make_shared<MyDatabase>("sistema.db");
+  auto db = std::make_shared<MyDatabase>("sistema.db");
 
-    db->add_migration(Migration{
-      1, [](Database &db) {
-        // do nothing ...
-      }
-    })
-    .build();
+  db->add_migration(Migration{
+    1, [](Database &db) {
+      // do nothing ...
+    }
+  })
+  .build();
+}
+
+TEST_F(jDbSuite, SimpleConvertion) {
+  UserModel model;
+  std::string data;
+
+  model.from("Jeff Ferr");
+  model.to(data);
+
+  ASSERT_EQ(data, "Jeff Ferr");
+}
+
+TEST_F(jDbSuite, DumpModel) {
+  UserModel user;
+
+  user["id"] = 1;
+  user["name"] = "Jeff Ferr";
+  user["address"] = "First District";
+  user["description"] = "Some description";
+
+  LoginModel login;
+
+  login["user_id"] = 1;
+  login["pass"] = "12345678";
+
+  CompoundUser compound{user, login};
+
+  // hide contained
+  ASSERT_EQ(user.to_string(), "{'id':1, 'name':'Jeff Ferr', 'address':'First District', 'description':'Some description'}");
+  ASSERT_EQ(login.to_string(), "{'user_id':1}");
+  ASSERT_EQ(compound.to_string(), "{'user': {'id':1, 'name':'Jeff Ferr', 'address':'First District', 'description':'Some description'}, 'login': {'user_id':1}}");
+
+  // show contained
+  ASSERT_EQ(login.to_string<1>(), "{'user_id':1, 'pass':'12345678'}");
+  ASSERT_EQ(compound.to_string<1>(), "{'user': {'id':1, 'name':'Jeff Ferr', 'address':'First District', 'description':'Some description'}, 'login': {'user_id':1, 'pass':'12345678'}}");
 }
 
 int main(int argc, char *argv[]) {

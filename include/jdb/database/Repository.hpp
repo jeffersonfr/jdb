@@ -316,7 +316,8 @@ namespace jdb {
 
     std::shared_ptr<Database> get_database() { return mDb; }
 
-    std::vector<Model> load_all() const {
+    template<jmixin::StringLiteral Extras, std::size_t Limit = 100>
+    std::vector<Model> select(auto... values) const {
       std::vector<Model> items;
       std::ostringstream o;
 
@@ -336,8 +337,14 @@ namespace jdb {
         o << " WHERE " << where.str();
       }
 
+      o << " " << fmt::vformat(Extras.to_string(), fmt::make_format_args(values...));
+
       mDb->query_string(o.str(), [&](std::vector<std::string> const &columns,
                                      std::vector<Data> const &values) {
+        if (items.size() >= Limit) {
+          return false;
+        }
+
         Model item;
 
         for_each_fill_model<0, Models...>(item, columns.begin(), values.begin());
@@ -349,6 +356,8 @@ namespace jdb {
 
       return items;
     }
+
+    std::vector<Model> load_all() const { return select<"ORDER BY ROWID">(); }
 
     std::optional<std::string> update(Model const &item) {
       try {

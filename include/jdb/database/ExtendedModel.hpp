@@ -8,6 +8,6 @@ namespace jdb {
 
   template<jmixin::StringLiteral Name, PrimaryConcept PrimaryKeys, ForeignConcept ForeignKeys, FieldConcept... Fields, FieldConcept ...NewFields>
   struct ExtendedModel<DataClass<Name, PrimaryKeys, ForeignKeys, Fields...>, NewFields...> : DataClass<Name, PrimaryKeys, ForeignKeys, Fields..., NewFields...> {
-      virtual ~ExtendedModel() = default;
+      ~ExtendedModel() override = default;
     };
 }

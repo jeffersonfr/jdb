@@ -50,26 +50,25 @@ namespace jdb {
     { T::is_nullable() } -> std::same_as<bool>;
   };
 
-  template<jmixin::StringLiteral Name, FieldType Type, bool Nullable = true,
+  template<std::size_t RestrictedLevel, jmixin::StringLiteral Name, FieldType Type, bool Nullable = true,
     DefaultValueConcept Default = NoDefaultValue>
-  struct Field {
+  struct ConstrainedField {
     constexpr static std::string get_name() { return Name.to_string(); }
 
     constexpr static FieldType get_type() { return Type; }
 
     constexpr static bool is_nullable() { return Nullable; }
 
+    constexpr static std::size_t restricted_level() { return RestrictedLevel; }
+
     constexpr static std::optional<std::string> get_default() {
       return Default::get_value();
     }
   };
 
-  template<jmixin::StringLiteral Name, FieldType Type, bool Nullable = true>
-  std::ostream &operator<<(std::ostream &out, Field<Name, Type, Nullable> field) {
-    out << get_name(field) << " " << get_type(field) << " " << is_nullable(field);
-
-    return out;
-  }
+  template<jmixin::StringLiteral Name, FieldType Type, bool Nullable = true,
+    DefaultValueConcept Default = NoDefaultValue>
+  using Field = ConstrainedField<0, Name, Type, Nullable, Default>;
 
   template<jmixin::StringLiteral Name, bool Nullable = true>
   using BoolField = Field<Name, FieldType::Bool, Nullable>;
@@ -82,6 +81,13 @@ namespace jdb {
 
   template<jmixin::StringLiteral Name, bool Nullable = true>
   using TextField = Field<Name, FieldType::Text, Nullable>;
+
+  template<jmixin::StringLiteral Name, FieldType Type, bool Nullable = true>
+  std::ostream &operator<<(std::ostream &out, Field<Name, Type, Nullable> field) {
+    out << get_name(field) << " " << get_type(field) << " " << is_nullable(field);
+
+    return out;
+  }
 
   template<typename T>
   concept PrimaryConcept = requires(T t)
@@ -207,7 +213,7 @@ namespace jdb {
     Data() = default;
 
     template<typename T>
-    Data(T &&data) : mData{std::forward<T>(data)} {
+    explicit Data(T &&data) : mData{std::forward<T>(data)} {
     }
 
     template<typename T>
@@ -231,14 +237,14 @@ namespace jdb {
       std::visit(std::forward<F>(callback), mData);
     }
 
-    bool is_null() const { return std::get_if<std::nullptr_t>(&mData) != nullptr; }
+    [[nodiscard]] bool is_null() const { return std::get_if<std::nullptr_t>(&mData) != nullptr; }
 
-    std::optional<bool> get_bool() const {
+    [[nodiscard]] std::optional<bool> get_bool() const {
       return get_int().and_then(
         [](auto value) { return std::optional{static_cast<bool>(value)}; });
     }
 
-    std::optional<int64_t> get_int() const {
+    [[nodiscard]] std::optional<int64_t> get_int() const {
       if (auto *value = std::get_if<int64_t>(&mData); value != nullptr) {
         return {*value};
       }
@@ -246,7 +252,7 @@ namespace jdb {
       return {};
     }
 
-    std::optional<double> get_decimal() const {
+    [[nodiscard]] std::optional<double> get_decimal() const {
       if (auto *value = std::get_if<double>(&mData); value != nullptr) {
         return {*value};
       }
@@ -254,7 +260,7 @@ namespace jdb {
       return {};
     }
 
-    std::optional<std::string> get_text() const {
+    [[nodiscard]] std::optional<std::string> get_text() const {
       if (auto *value = std::get_if<std::string>(&mData); value != nullptr) {
         return {*value};
       }
@@ -315,6 +321,8 @@ namespace jdb {
         }
     }
 
+    virtual ~DataClass() = default;
+
     static constexpr std::string get_name() { return Name.to_string(); }
 
     template<typename F>
@@ -369,27 +377,32 @@ namespace jdb {
       return mFields[index];
     }
 
-    virtual std::string to_string() const {
+    template <std::size_t RestrictedLevel = 0>
+    [[nodiscard]] std::string to_string() const {
       std::ostringstream o;
       bool first = true;
 
       o << "{";
 
       get_fields([&]<typename Field>() {
+        if (Field::restricted_level() > RestrictedLevel) {
+          return;
+        }
+
         if (!first) {
           o << ", ";
         }
 
         first = false;
 
-        o << std::quoted(Field::get_name()) << ":";
+        o << std::quoted(Field::get_name(), '\'') << ":";
 
         this->operator[](Field::get_name())
           .get_value(overloaded{
             [&](std::nullptr_t arg) { o << "null"; },
             [&](bool arg) { o << (arg ? "true" : "false"); },
             [&](int64_t arg) { o << arg; }, [&](double arg) { o << arg; },
-            [&](std::string arg) { o << std::quoted(arg); }
+            [&](std::string arg) { o << std::quoted(arg, '\''); }
           });
       });
 
@@ -398,10 +411,14 @@ namespace jdb {
       return o.str();
     }
 
-    friend std::ostream &operator<<(std::ostream &out, DataClass const &value) {
-      out << value.to_string();
+    template <typename Data>
+    void from(Data const &data) {
+      model_from_data(*this, data);
+    }
 
-      return out;
+    template <typename Data>
+    void to(Data &data) {
+      return model_to_data(*this, data);
     }
 
   private:

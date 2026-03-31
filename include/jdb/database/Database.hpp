@@ -155,7 +155,7 @@ namespace jdb {
                 "unable to insert '{}', field '{}' is not a text value",
                 Model::get_name(), Field::get_name()));
             }
-            o << std::quoted(arg);
+            o << std::quoted(arg, '\'');
           }
         });
       });
@@ -242,7 +242,7 @@ namespace jdb {
                 "unable to update '{}', field '{}' is not a text value",
                 Model::get_name(), Field::get_name()));
             }
-            o << std::quoted(arg);
+            o << std::quoted(arg, '\'');
           }
         });
       });

@@ -20,31 +20,38 @@ namespace jdb {
       return ((T &) (*this))[id];
     }
 
-    friend std::ostream &operator<<(std::ostream &out,
-                                    CompoundModel const &value) {
-      for_each<0, Models...>(out, value);
 
-      return out;
+    template <std::size_t RestrictedLevel = 0>
+    [[nodiscard]] std::string to_string() const {
+      std::ostringstream o;
+
+      o << "{";
+
+      for_each<RestrictedLevel, 0, Models...>(o, *this);
+
+      o << "}";
+
+      return o.str();
     }
 
     private:
-    template<std::size_t Index, typename Arg, typename... Args>
-    static constexpr void for_each(std::ostream &out,
-                                   CompoundModel const &value) {
-      if constexpr (Index > 0) {
-        out << ", ";
+      template<std::size_t RestrictedLevel, std::size_t Index, typename Arg, typename... Args>
+      static constexpr void for_each(std::ostream &out,
+                                     CompoundModel const &value) {
+        if constexpr (Index > 0) {
+          out << ", ";
+        }
+
+        out << std::quoted(Arg::get_name(), '\'') << ": " << value.get<Arg>().template to_string<RestrictedLevel>();
+
+        if constexpr (sizeof...(Args) > 0) {
+          return for_each<RestrictedLevel, Index + 1, Args...>(out, value);
+        }
       }
 
-      out << std::quoted(Arg::get_name(), '\'') << ": " << value.get<Arg>();
-
-      if constexpr (sizeof...(Args) > 0) {
-        return for_each<Index + 1, Args...>(out, value);
+      template<std::size_t RestrictedLevel, std::size_t Index>
+      static constexpr void for_each(std::ostream &out) {
       }
-    }
-
-    template<std::size_t Index>
-    static constexpr void for_each(std::ostream &out) {
-    }
   };
 }
 
