@@ -209,7 +209,9 @@ namespace jdb {
     void save_all(std::vector<Model> const &items) const {
       mDb->transaction([&](Database &db) {
         for (auto const &item: items) {
-          save(item);
+          save(item).or_else([](auto const &e) {
+            throw std::runtime_error(std::format("unable to save model: {}", e.what()));
+          });
         }
       });
     }
@@ -272,7 +274,11 @@ namespace jdb {
       }
 
       value.get_value(overloaded{
-        [&](std::nullptr_t arg) { out << "(" << Field.to_string() << " IS NULL)"; },
+        [&]([[maybe_unused]] InvalidData arg) {
+        },
+        [&]([[maybe_unused]] std::nullptr_t arg) {
+          out << "(" << Field.to_string() << " IS NULL)";
+        },
         [&](bool arg) {
           out << "(" << Field.to_string() << " = " << (arg ? "true" : "false")
               << ")";

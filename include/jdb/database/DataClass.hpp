@@ -112,7 +112,7 @@ namespace jdb {
       if (auto it = std::unique(primaryKeys.begin(), primaryKeys.end());
         primaryKeys.size() != 0 and it != primaryKeys.end()) {
         throw std::runtime_error("Duplicated primary key");
-        }
+      }
     }
 
     static constexpr std::size_t get_size() { return sizeof...(Keys); }
@@ -179,7 +179,7 @@ namespace jdb {
       if (auto it = std::unique(refers.begin(), refers.end());
         refers.size() != 0 and it != refers.end()) {
         throw std::runtime_error("Duplicated foreign key");
-        }
+      }
     }
 
     static constexpr std::size_t get_size() { return sizeof...(Refers); }
@@ -207,8 +207,14 @@ namespace jdb {
 
   using NoForeign = Foreign<>;
 
+  struct InvalidData {
+    InvalidData() = default;
+
+    bool operator==(const InvalidData &) const = default;
+  };
+
   struct Data {
-    using MyData = std::variant<std::nullptr_t, bool, int64_t, double, std::string>;
+    using MyData = std::variant<InvalidData, std::nullptr_t, bool, int64_t, double, std::string>;
 
     Data() = default;
 
@@ -236,6 +242,8 @@ namespace jdb {
     constexpr void get_value(F &&callback) const {
       std::visit(std::forward<F>(callback), mData);
     }
+
+    [[nodiscard]] bool is_invalid() const { return std::get_if<InvalidData>(&mData) != nullptr; }
 
     [[nodiscard]] bool is_null() const { return std::get_if<std::nullptr_t>(&mData) != nullptr; }
 
@@ -282,8 +290,8 @@ namespace jdb {
 
   std::ostream &operator<<(std::ostream &out, Data const &value) {
     value.get_value(overloaded{
-      [&](std::nullptr_t arg) {
-      },
+      [&]([[maybe_unused]] InvalidData arg) { },
+      [&]([[maybe_unused]] std::nullptr_t arg) { },
       [&](bool arg) { out << (arg ? "true" : "false"); },
       [&](int64_t arg) { out << std::to_string(arg); },
       [&](double arg) { out << std::to_string(arg); },
@@ -318,7 +326,7 @@ namespace jdb {
         it != fields.end()) {
         throw std::runtime_error(fmt::format(
           "Duplicated fields in model definition of '{}'", Name.to_string()));
-        }
+      }
     }
 
     virtual ~DataClass() = default;
@@ -377,7 +385,21 @@ namespace jdb {
       return mFields[index];
     }
 
-    template <std::size_t RestrictedLevel = 0>
+    template<std::size_t RestrictedLevel>
+    [[nodiscard]] DataClass restrict() const {
+      auto clone = *this;
+
+      clone.mValid = false;
+
+      get_fields([&]<typename Field>() {
+        if (Field::restricted_level() > RestrictedLevel) {
+          clone[Field::get_name()] = InvalidData{};
+        }
+      });
+
+      return clone;
+    }
+
     [[nodiscard]] std::string to_string() const {
       std::ostringstream o;
       bool first = true;
@@ -385,7 +407,7 @@ namespace jdb {
       o << "{";
 
       get_fields([&]<typename Field>() {
-        if (Field::restricted_level() > RestrictedLevel) {
+        if (this->operator[](Field::get_name()).is_invalid()) {
           return;
         }
 
@@ -398,12 +420,13 @@ namespace jdb {
         o << std::quoted(Field::get_name(), '\'') << ":";
 
         this->operator[](Field::get_name())
-          .get_value(overloaded{
-            [&](std::nullptr_t arg) { o << "null"; },
-            [&](bool arg) { o << (arg ? "true" : "false"); },
-            [&](int64_t arg) { o << arg; }, [&](double arg) { o << arg; },
-            [&](std::string arg) { o << std::quoted(arg, '\''); }
-          });
+            .get_value(overloaded{
+              [&]([[maybe_unused]] InvalidData arg) { },
+              [&]([[maybe_unused]] std::nullptr_t arg) { o << "null"; },
+              [&](bool arg) { o << (arg ? "true" : "false"); },
+              [&](int64_t arg) { o << arg; }, [&](double arg) { o << arg; },
+              [&](std::string arg) { o << std::quoted(arg, '\''); }
+            });
       });
 
       o << "}";
@@ -411,18 +434,23 @@ namespace jdb {
       return o.str();
     }
 
-    template <typename Data>
+    [[nodiscard]] bool is_valid() const {
+      return mValid;
+    }
+
+    template<typename Data>
     void from(Data const &data) {
       model_from_data(*this, data);
     }
 
-    template <typename Data>
+    template<typename Data>
     void to(Data &data) {
       return model_to_data(*this, data);
     }
 
   private:
     std::array<Data, sizeof...(Fields)> mFields;
+    bool mValid = true;
 
     template<typename Arg, typename... Args, typename F>
     static void for_each(F callback) {
@@ -457,7 +485,7 @@ namespace jdb {
 template<jmixin::StringLiteral Name, jdb::PrimaryConcept PrimaryKeys,
   jdb::ForeignConcept ForeignKeys, jdb::FieldConcept... Fields>
 struct fmt::formatter<jdb::DataClass<Name, PrimaryKeys, ForeignKeys, Fields...> >
-  : fmt::ostream_formatter {
+    : fmt::ostream_formatter {
 };
 
 namespace jinject {

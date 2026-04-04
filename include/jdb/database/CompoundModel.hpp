@@ -20,47 +20,75 @@ namespace jdb {
       return ((T &) (*this))[id];
     }
 
+    template<std::size_t RestrictedLevel>
+    [[nodiscard]] CompoundModel restrict() const {
+      auto model = *this;
 
-    template <std::size_t RestrictedLevel = 0>
+      model.mValid = false;
+
+      restricted_for_each<RestrictedLevel, Models...>(model);
+
+      return model;
+    }
+
     [[nodiscard]] std::string to_string() const {
       std::ostringstream o;
 
       o << "{";
 
-      for_each<RestrictedLevel, 0, Models...>(o, *this);
+      for_each<0, Models...>(o, *this);
 
       o << "}";
 
       return o.str();
     }
 
-    private:
-      template<std::size_t RestrictedLevel, std::size_t Index, typename Arg, typename... Args>
-      static constexpr void for_each(std::ostream &out,
-                                     CompoundModel const &value) {
-        if constexpr (Index > 0) {
-          out << ", ";
-        }
+    [[nodiscard]] bool is_valid() const {
+      return mValid;
+    }
 
-        out << std::quoted(Arg::get_name(), '\'') << ": " << value.get<Arg>().template to_string<RestrictedLevel>();
+  private:
+    bool mValid = true;
 
-        if constexpr (sizeof...(Args) > 0) {
-          return for_each<RestrictedLevel, Index + 1, Args...>(out, value);
-        }
+    template<std::size_t Index, typename Arg, typename... Args>
+    static constexpr void for_each(std::ostream &out,
+                                   CompoundModel const &value) {
+      if constexpr (Index > 0) {
+        out << ", ";
       }
 
-      template<std::size_t RestrictedLevel, std::size_t Index>
-      static constexpr void for_each(std::ostream &out) {
+      out << std::quoted(Arg::get_name(), '\'') << ": " << value.get<Arg>().to_string();
+
+      if constexpr (sizeof...(Args) > 0) {
+        return for_each<Index + 1, Args...>(out, value);
       }
+    }
+
+    template<std::size_t Index>
+    static constexpr void for_each(std::ostream &out) {
+    }
+
+    template<std::size_t RestrictedValue, typename Arg, typename... Args>
+    static constexpr void restricted_for_each(CompoundModel const &value) {
+      value.get<Arg>() = value.get<Arg>().template restrict<RestrictedValue>();
+
+      if constexpr (sizeof...(Args) > 0) {
+        return restricted_for_each<RestrictedValue, Args...>(value);
+      }
+    }
+
+    template<std::size_t RestrictedValue>
+    static constexpr void restricted_for_each() {
+    }
   };
 }
 
 template<typename... Models>
-  struct fmt::formatter<jdb::CompoundModel<Models...> > : fmt::ostream_formatter {
+struct fmt::formatter<jdb::CompoundModel<Models...> > : fmt::ostream_formatter {
 };
 
 namespace jinject {
-  template<typename ...Models>
+  template<typename... Models>
   struct introspection<jdb::CompoundModel<Models...> > {
     static std::string to_string() {
       std::string compoundModels;
@@ -75,7 +103,7 @@ namespace jinject {
     static void for_each(std::string &compoundModels) {
     }
 
-    template<std::size_t Index, typename Arg, typename ...Args>
+    template<std::size_t Index, typename Arg, typename... Args>
     static void for_each(std::string &compoundModels) {
       if (Index > 1) {
         compoundModels = compoundModels + ", ";

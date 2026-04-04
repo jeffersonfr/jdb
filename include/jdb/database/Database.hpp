@@ -70,6 +70,10 @@ namespace jdb {
 
     template<typename Model>
     Model insert(Model const &model) {
+      if (!model.is_valid()) {
+        throw std::invalid_argument("invalid or restricted model");
+      }
+
       std::ostringstream o;
       int first = 0;
 
@@ -105,7 +109,9 @@ namespace jdb {
         }
 
         value.get_value(overloaded{
-          [&](std::nullptr_t arg) {
+          [&]([[maybe_unused]] InvalidData arg) {
+          },
+          [&]([[maybe_unused]] std::nullptr_t arg) {
             if (!Field::is_nullable() and Field::get_default().has_value()) {
               return;
             }
@@ -176,6 +182,10 @@ namespace jdb {
 
     template<typename Model>
     void update(Model const &model) {
+      if (!model.is_valid()) {
+        throw std::invalid_argument("invalid or restricted model");
+      }
+
       std::ostringstream o;
       int first = 0;
 
@@ -195,7 +205,9 @@ namespace jdb {
         o << Field::get_name() << " = ";
 
         value.get_value(overloaded{
-          [&](std::nullptr_t arg) {
+          [&]([[maybe_unused]] InvalidData arg) {
+          },
+          [&]([[maybe_unused]] std::nullptr_t arg) {
             if (!Field::is_nullable() and
                 Field::get_type() != FieldType::Serial) {
               throw std::runtime_error(
@@ -255,6 +267,10 @@ namespace jdb {
 
     template<typename Model>
     bool remove(Model const &model) {
+      if (!model.is_valid()) {
+        throw std::invalid_argument("invalid or restricted model");
+      }
+
       std::ostringstream o;
       // bool first = true;
 
@@ -289,7 +305,9 @@ namespace jdb {
         auto const &value = model[Field::get_name()];
 
         value.get_value(overloaded{
-          [&](std::nullptr_t arg) {
+          [&]([[maybe_unused]] InvalidData arg) {
+          },
+          [&]([[maybe_unused]] std::nullptr_t arg) {
             out << "(" << Field::get_name() << " IS NULL)";
           },
           [&](bool arg) {

@@ -98,14 +98,18 @@ TEST_F(jDbSuite, DumpModel) {
 
   CompoundUser compound{user, login};
 
-  // hide contained
+  // no constrained
   ASSERT_EQ(user.to_string(), "{'id':1, 'name':'Jeff Ferr', 'address':'First District', 'description':'Some description'}");
-  ASSERT_EQ(login.to_string(), "{'user_id':1}");
-  ASSERT_EQ(compound.to_string(), "{'user': {'id':1, 'name':'Jeff Ferr', 'address':'First District', 'description':'Some description'}, 'login': {'user_id':1}}");
+  ASSERT_EQ(login.to_string(), "{'user_id':1, 'pass':'12345678'}");
+  ASSERT_EQ(compound.to_string(), "{'user': {'id':1, 'name':'Jeff Ferr', 'address':'First District', 'description':'Some description'}, 'login': {'user_id':1, 'pass':'12345678'}}");
 
-  // show contained
-  ASSERT_EQ(login.to_string<1>(), "{'user_id':1, 'pass':'12345678'}");
-  ASSERT_EQ(compound.to_string<1>(), "{'user': {'id':1, 'name':'Jeff Ferr', 'address':'First District', 'description':'Some description'}, 'login': {'user_id':1, 'pass':'12345678'}}");
+  // constrained with RestrictLevel = 0
+  ASSERT_EQ(login.restrict<0>().to_string(), "{'user_id':1}");
+  ASSERT_EQ(compound.restrict<0>().to_string(), "{'user': {'id':1, 'name':'Jeff Ferr', 'address':'First District', 'description':'Some description'}, 'login': {'user_id':1}}");
+
+  // constrained with RestrictLevel = 1
+  ASSERT_EQ(login.restrict<1>().to_string(), "{'user_id':1, 'pass':'12345678'}");
+  ASSERT_EQ(compound.restrict<1>().to_string(), "{'user': {'id':1, 'name':'Jeff Ferr', 'address':'First District', 'description':'Some description'}, 'login': {'user_id':1, 'pass':'12345678'}}");
 }
 
 int main(int argc, char *argv[]) {
