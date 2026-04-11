@@ -71,23 +71,24 @@ namespace jdb {
       mTransactionLock.store(false, std::memory_order_release);
     }
 
-    int64_t query_string(std::string const &sql,
-                         std::function<bool(std::vector<std::string> const &,
-                                            std::vector<Data> const &)>
-                         callback) override {
+    int64_t query_string(std::string const &sql, QueryCallback const &callback) override {
       try {
         SQLite::Statement query(mDb, sql);
 
         std::vector<std::string> columns;
         std::vector<Data> values;
 
-        while (query.executeStep()) {
-          if (columns.empty()) {
-            for (int i = 0; i < query.getColumnCount(); i++) {
-              columns.emplace_back(query.getColumn(i).getName());
-            }
-          }
+        if (!query.executeStep()) {
+          return -1L;
+        }
 
+        columns.clear();
+
+        for (int i = 0; i < query.getColumnCount(); i++) {
+          columns.emplace_back(query.getColumn(i).getName());
+        }
+
+        do {
           for (int i = 0; i < query.getColumnCount(); i++) {
             SQLite::Column col = query.getColumn(i);
 
@@ -109,7 +110,7 @@ namespace jdb {
           }
 
           values.clear();
-        }
+        } while (query.executeStep());
 
         query.reset();
 

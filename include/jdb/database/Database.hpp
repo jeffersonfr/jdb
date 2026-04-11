@@ -12,14 +12,12 @@
 #include <fmt/format.h>
 
 namespace jdb {
+  using QueryCallback = std::function<bool(std::vector<std::string> const &, std::vector<Data> const &)>;
+
   struct Database {
     virtual ~Database() = default;
 
-    virtual int64_t
-      query_string(std::string const &sql,
-                   std::function<bool(std::vector<std::string> const &,
-                                      std::vector<Data> const &)>
-                   callback) = 0;
+    virtual int64_t query_string(std::string const &sql, QueryCallback const &callback) = 0;
 
     virtual void transaction(std::function<void(Database &)> callback) = 0;
 
@@ -63,7 +61,7 @@ namespace jdb {
       if (!Field::is_nullable() and !hasValue and
           Field::get_default().has_value()) {
         return true;
-          }
+      }
 
       return false;
     }
@@ -312,7 +310,7 @@ namespace jdb {
           },
           [&](bool arg) {
             out << "(" << Field::get_name() << " = " << (arg ? "1" : "0")
-              << ")";
+                << ")";
           },
           [&](int64_t arg) {
             out << "(" << Field::get_name() << " = " << arg << ")";

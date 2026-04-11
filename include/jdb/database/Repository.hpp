@@ -22,6 +22,19 @@ namespace jdb {
 
     std::shared_ptr<Database> get_database() { return mDb; }
 
+    template<jmixin::StringLiteral Extras>
+    std::vector<Model> select(QueryCallback const &callback, auto... values) const {
+      std::vector<Model> items;
+      std::ostringstream o;
+
+      o << "SELECT * from " << Model::get_name() << " "
+          << fmt::vformat(Extras.to_string(), fmt::make_format_args(values...));
+
+      mDb->query_string(o.str(), callback);
+
+      return items;
+    }
+
     template<jmixin::StringLiteral Extras, std::size_t Limit = 100>
     std::vector<Model> select(auto... values) const {
       std::vector<Model> items;
@@ -71,6 +84,22 @@ namespace jdb {
       });
 
       return result;
+    }
+
+    template<jmixin::StringLiteral... Fields>
+    std::vector<Model> load_by(QueryCallback const &callback, auto... values) const {
+      std::vector<Model> items;
+      std::ostringstream o;
+
+      o << "SELECT * from " << Model::get_name() << " WHERE ";
+
+      for_each_where<0, Fields...>(o, values...);
+
+      o << " ORDER BY ROWID";
+
+      mDb->query_string(o.str(), callback);
+
+      return items;
     }
 
     template<jmixin::StringLiteral... Fields>

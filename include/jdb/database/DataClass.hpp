@@ -387,6 +387,10 @@ namespace jdb {
 
     template<std::size_t RestrictedLevel>
     [[nodiscard]] DataClass restrict() const {
+      if (!is_valid()) {
+        throw std::runtime_error("Model already restricted");
+      }
+
       auto clone = *this;
 
       clone.mValid = false;
