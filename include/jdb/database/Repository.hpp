@@ -227,6 +227,14 @@ namespace jdb {
       return {};
     }
 
+    void upsave(Model const &item) {
+      return save(item).or_else([&]() {
+        return update(item).or_else([]() {
+          throw std::runtime_error("upsert error");
+        });
+      });
+    }
+
     [[nodiscard]] std::expected<Model, std::runtime_error> save(Model const &item) const {
       try {
         return mDb->insert(item);

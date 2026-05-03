@@ -363,6 +363,13 @@ namespace jdb {
         [&]<typename FKey>() { callback.template operator()<FKey>(); });
     }
 
+    template<jmixin::StringLiteral Name0, FieldConcept... Fields0>
+    void fill(DataClass<Name0, NoPrimary, NoForeign, Fields0...> &model) {
+      model.get_fields([&]<typename Field>() {
+        model[Field::get_name()] = (*this)[Field::get_name()];
+      });
+    }
+
     constexpr Data const &operator[](std::string_view name) const {
       int index = index_of<0, Fields...>(name);
 

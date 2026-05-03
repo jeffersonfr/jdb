@@ -68,4 +68,36 @@ namespace jdb {
     std::optional<T> mData;
     std::mutex mMutex;
   };
+
+  namespace {
+    template<typename T>
+    struct CombineState : public State<T> {
+      friend class State<T>;
+
+      CombineState(auto &...states) : State<T>{} {
+        (registerState(states), ...);
+      }
+
+      void observe(std::function<void(T const &)> callback) override {
+        mCallback = callback;
+      }
+
+      void notify(T const &data) {
+      }
+
+      std::optional<T> get() {
+        return {};
+      }
+
+    private:
+      std::vector<State<T> *> mStates;
+      std::function<void(T const &)> mCallback;
+
+      void register_callback(State<T> &state) {
+        state.observe([&](auto const &data) {
+          mCallback(data);
+        });
+      }
+    };
+  }
 }

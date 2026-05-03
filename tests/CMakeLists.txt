@@ -37,3 +37,4 @@ endmacro()
 enable_testing()
 
 module_test(db_unit)
+module_test(utils_unit)

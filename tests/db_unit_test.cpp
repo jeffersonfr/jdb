@@ -17,6 +17,10 @@ using UserModel = DataClass<"user", Primary<"id">, NoForeign,
   Field<"address", FieldType::Int, false>,
   Field<"description", FieldType::Text, false> >;
 
+using UserDataModel = DataClass<"user", NoPrimary, NoForeign,
+  Field<"name", FieldType::Int, false>,
+  Field<"address", FieldType::Int, false> >;
+
 using LoginModel = DataClass<"login", Primary<"id">, NoForeign,
   Field<"user_id", FieldType::Serial, false>,
   ConstrainedField<1, "pass", FieldType::Int, false> >;
@@ -51,6 +55,8 @@ struct jDbSuite : public ::testing::Test {
   jDbSuite() = default;
 
   void SetUp() override {
+    auto model1 = ExtendedUserModel{};
+    auto model2 = ExtendedUserSimpleModel{};
   }
 
   void TearDown() override {
@@ -88,6 +94,21 @@ TEST_F(jDbSuite, SimpleConvertion) {
   model.to(data);
 
   ASSERT_EQ(data, "Jeff Ferr");
+}
+
+TEST_F(jDbSuite, FillModel) {
+  UserModel user;
+
+  user["id"] = 1;
+  user["name"] = "Jeff Ferr";
+  user["address"] = "First District";
+  user["description"] = "Some description";
+
+  UserDataModel userData;
+
+  user.fill(userData);
+
+  ASSERT_EQ(userData.to_string(), "{'name':'Jeff Ferr', 'address':'First District'}");
 }
 
 TEST_F(jDbSuite, DumpModel) {
