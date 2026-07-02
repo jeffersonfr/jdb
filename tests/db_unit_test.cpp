@@ -96,6 +96,16 @@ TEST_F(jDbSuite, SimpleConvertion) {
   ASSERT_EQ(data, "Jeff Ferr");
 }
 
+TEST_F(jDbSuite, CompareModel) {
+  UserModel user;
+
+  user["id"] = 1;
+  user["name"] = "Jeff Ferr";
+
+  ASSERT_EQ(user["id"], 1);
+  ASSERT_EQ(user["name"], "Jeff Ferr");
+}
+
 TEST_F(jDbSuite, FillModel) {
   UserModel user;
 

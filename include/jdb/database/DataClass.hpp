@@ -284,6 +284,40 @@ namespace jdb {
     }
     */
 
+    bool operator==(int const &other) const {
+      if (int64_t const *value = std::get_if<int64_t>(&mData); value == nullptr) {
+        return false;
+      } else {
+        return other == *value;
+      }
+    }
+
+    bool operator==(float const &other) const {
+      if (double const *value = std::get_if<double>(&mData); value == nullptr) {
+        return false;
+      } else {
+        return other == *value;
+      }
+    }
+
+    template <typename T>
+    bool operator==(T const &other) const {
+      if (T const *value = std::get_if<T>(&mData); value == nullptr) {
+        return false;
+      } else {
+        return other == *value;
+      }
+    }
+
+    template <std::size_t N>
+    bool operator==(char const (&other)[N]) const {
+      if (std::string const *value = std::get_if<std::string>(&mData); value == nullptr) {
+        return false;
+      } else {
+        return other == *value;
+      }
+    }
+
   private:
     MyData mData;
   };
