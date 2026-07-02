@@ -54,8 +54,9 @@ namespace jdb {
 
       value.get_value(
         overloaded{
-          [&](std::nullptr_t arg) { hasValue = false; }, [](auto arg) {
-          }
+          [&](InvalidData arg) { hasValue = false; },
+          [&](std::nullptr_t arg) { hasValue = false; },
+          []([[maybe_unused]] auto arg) { }
         });
 
       if (!Field::is_nullable() and !hasValue and
@@ -108,6 +109,7 @@ namespace jdb {
 
         value.get_value(overloaded{
           [&]([[maybe_unused]] InvalidData arg) {
+            o << "null";
           },
           [&]([[maybe_unused]] std::nullptr_t arg) {
             if (!Field::is_nullable() and Field::get_default().has_value()) {
@@ -159,7 +161,7 @@ namespace jdb {
                 "unable to insert '{}', field '{}' is not a text value",
                 Model::get_name(), Field::get_name()));
             }
-            o << std::quoted(arg, '\'');
+            o << std::quoted(arg, '\"');
           }
         });
       });
@@ -252,7 +254,7 @@ namespace jdb {
                 "unable to update '{}', field '{}' is not a text value",
                 Model::get_name(), Field::get_name()));
             }
-            o << std::quoted(arg, '\'');
+            o << std::quoted(arg, '\"');
           }
         });
       });
