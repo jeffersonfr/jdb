@@ -200,7 +200,7 @@ namespace jdb {
     }
 
     template<typename F>
-    static constexpr void for_each(F callback) {
+    static constexpr void for_each([[maybe_unused]] F callback) {
       // no primary keys
     }
   };
@@ -219,7 +219,7 @@ namespace jdb {
     Data() = default;
 
     template<typename T>
-    explicit Data(T &&data) : mData{std::forward<T>(data)} {
+    Data(T &&data) : mData{std::forward<T>(data)} {
     }
 
     template<typename T>
@@ -300,18 +300,26 @@ namespace jdb {
       }
     }
 
-    template <typename T>
-    bool operator==(T const &other) const {
-      if (T const *value = std::get_if<T>(&mData); value == nullptr) {
-        return false;
-      } else {
-        return other == *value;
-      }
-    }
-
     template <std::size_t N>
     bool operator==(char const (&other)[N]) const {
       if (std::string const *value = std::get_if<std::string>(&mData); value == nullptr) {
+        return false;
+      } else {
+        return std::string_view{other} == *value;
+      }
+    }
+
+    bool operator==(char *other) const {
+      if (std::string const *value = std::get_if<std::string>(&mData); value == nullptr) {
+        return false;
+      } else {
+        return std::string_view{other} == *value;
+      }
+    }
+
+    template <typename T>
+    bool operator==(T const &other) const {
+      if (T const *value = std::get_if<T>(&mData); value == nullptr) {
         return false;
       } else {
         return other == *value;
@@ -525,6 +533,14 @@ namespace jdb {
       }
     }
   };
+
+  template<jmixin::StringLiteral Name, PrimaryConcept PrimaryKeys,
+    ForeignConcept ForeignKeys, FieldConcept... Fields>
+  std::ostream &operator<<(std::ostream &out, DataClass<Name, PrimaryKeys, ForeignKeys, Fields...> const &value) {
+    out << value.to_string();
+
+    return out;
+  }
 }
 
 template<jmixin::StringLiteral Name, jdb::PrimaryConcept PrimaryKeys,
