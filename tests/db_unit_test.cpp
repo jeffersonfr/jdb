@@ -15,6 +15,7 @@ using UserModel = DataClass<"user", Primary<"id">, NoForeign,
   Field<"id", FieldType::Serial, false>,
   Field<"name", FieldType::Int, false>,
   Field<"address", FieldType::Int, false>,
+  IgnoreField<"password", FieldType::Text, true>,
   Field<"description", FieldType::Text, false> >;
 
 using UserDataModel = DataClass<"user", NoPrimary, NoForeign,
@@ -126,6 +127,7 @@ TEST_F(jDbSuite, DumpModel) {
 
   user["id"] = 1;
   user["name"] = "Jeff Ferr";
+  user["password"] = "123456";
   user["address"] = "First District";
   user["description"] = "Some description";
 

@@ -257,7 +257,7 @@ namespace jdb {
 
         auto defaultValue = Field::get_default();
 
-        if (Field::is_nullable()) {
+        if (Field::nullable()) {
           ddl << " NULL";
 
           if (defaultValue.has_value()) {
@@ -275,7 +275,7 @@ namespace jdb {
       });
 
       model.get_keys([&]<typename Field>() {
-        if (Field::is_nullable()) {
+        if (Field::nullable()) {
           throw std::runtime_error(fmt::format(
             "Primary key of '{}' must be not null", model.get_name()));
         }

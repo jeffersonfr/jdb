@@ -47,17 +47,20 @@ namespace jdb {
   {
     { T::get_name() } -> std::same_as<std::string>;
     { T::get_type() } -> std::same_as<FieldType>;
-    { T::is_nullable() } -> std::same_as<bool>;
+    { T::nullable() } -> std::same_as<bool>;
+    { T::ignore() } -> std::same_as<bool>;
   };
 
   template<std::size_t RestrictedLevel, jmixin::StringLiteral Name, FieldType Type, bool Nullable = true,
-    DefaultValueConcept Default = NoDefaultValue>
+    DefaultValueConcept Default = NoDefaultValue, bool Ignore = false>
   struct ConstrainedField {
     constexpr static std::string get_name() { return Name.to_string(); }
 
     constexpr static FieldType get_type() { return Type; }
 
-    constexpr static bool is_nullable() { return Nullable; }
+    constexpr static bool nullable() { return Nullable; }
+
+    constexpr static bool ignore() { return Ignore; }
 
     constexpr static std::size_t restricted_level() { return RestrictedLevel; }
 
@@ -68,6 +71,10 @@ namespace jdb {
 
   template<jmixin::StringLiteral Name, FieldType Type, bool Nullable = true,
     DefaultValueConcept Default = NoDefaultValue>
+  using IgnoreField = ConstrainedField<0, Name, Type, Nullable, Default, true>;
+
+  template<jmixin::StringLiteral Name, FieldType Type, bool Nullable = true,
+  DefaultValueConcept Default = NoDefaultValue>
   using Field = ConstrainedField<0, Name, Type, Nullable, Default>;
 
   template<jmixin::StringLiteral Name, bool Nullable = true>
@@ -84,7 +91,7 @@ namespace jdb {
 
   template<jmixin::StringLiteral Name, FieldType Type, bool Nullable = true>
   std::ostream &operator<<(std::ostream &out, Field<Name, Type, Nullable> field) {
-    out << get_name(field) << " " << get_type(field) << " " << is_nullable(field);
+    out << get_name(field) << " " << get_type(field) << " " << nullable(field);
 
     return out;
   }
@@ -507,7 +514,9 @@ namespace jdb {
 
     template<typename Arg, typename... Args, typename F>
     static void for_each(F callback) {
-      callback.template operator()<Arg>();
+      if (!Arg::ignore()) {
+        callback.template operator()<Arg>();
+      }
 
       if constexpr (sizeof...(Args) > 0) {
         return for_each<Args...>(callback);

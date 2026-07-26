@@ -59,7 +59,7 @@ namespace jdb {
           []([[maybe_unused]] auto arg) { }
         });
 
-      if (!Field::is_nullable() and !hasValue and
+      if (!Field::nullable() and !hasValue and
           Field::get_default().has_value()) {
         return true;
       }
@@ -112,10 +112,10 @@ namespace jdb {
             o << "null";
           },
           [&]([[maybe_unused]] std::nullptr_t arg) {
-            if (!Field::is_nullable() and Field::get_default().has_value()) {
+            if (!Field::nullable() and Field::get_default().has_value()) {
               return;
             }
-            if (!Field::is_nullable() and
+            if (!Field::nullable() and
                 Field::get_type() != FieldType::Serial) {
               throw std::runtime_error(
                 fmt::format("unable to insert '{}', field '{}' is not null",
@@ -208,7 +208,7 @@ namespace jdb {
           [&]([[maybe_unused]] InvalidData arg) {
           },
           [&]([[maybe_unused]] std::nullptr_t arg) {
-            if (!Field::is_nullable() and
+            if (!Field::nullable() and
                 Field::get_type() != FieldType::Serial) {
               throw std::runtime_error(
                 fmt::format("unable to update '{}', field '{}' is not null",
