@@ -177,7 +177,7 @@ namespace jdb {
   struct Foreign {
     constexpr Foreign() {
       std::array<std::string_view, sizeof...(Refers)> refers;
-      int i = 0;
+      [[maybe_unused]] int i = 0;
 
       (static_cast<void>(refers[i++] = Refers::get_name()), ...);
 
